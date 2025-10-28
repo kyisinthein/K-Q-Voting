@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import QuickActionsFloating from '@/components/quick-actions';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -18,6 +19,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
+      {/* Floating quick actions on all screens */}
+      <QuickActionsFloating />
       <StatusBar style="auto" />
     </ThemeProvider>
   );
