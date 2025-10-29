@@ -198,8 +198,8 @@ export default function CandidateDetails() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
+      <View style={{ flex: 1, padding: 20, paddingBottom: 110, backgroundColor: '#6a5acd' }}>
         <View
           style={{
             backgroundColor: 'white',
@@ -207,16 +207,22 @@ export default function CandidateDetails() {
             overflow: 'hidden',
             marginBottom: 16,
             position: 'relative',
+            borderWidth: 3,
+            borderColor: 'rgba(0,0,0,0.06)',
+            shadowColor: '#000',
+            shadowOpacity: 0.08,
+            shadowRadius: 20,
+            shadowOffset: { width: 0, height: 6 },
           }}
         >
           {candidate.image_url ? (
             <Image
               source={{ uri: candidate.image_url }}
-              style={{ width: '100%', height: 220 }}
+              style={{ width: '100%', height: 300, borderRadius: 20 }}
               resizeMode="cover"
             />
           ) : (
-            <View style={{ width: '100%', height: 220, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: '100%', height: 300, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: '#666' }}>No photo</Text>
             </View>
           )}
@@ -225,12 +231,14 @@ export default function CandidateDetails() {
               position: 'absolute',
               top: 12,
               right: 12,
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: 'rgba(255,255,255,0.9)',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: 'rgba(255,255,255,0.95)',
               alignItems: 'center',
               justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(0,0,0,0.06)',
             }}
           >
             <Text style={{ fontWeight: '700' }}>{candidate.waist_number ?? '—'}</Text>
@@ -245,8 +253,10 @@ export default function CandidateDetails() {
               right: 12,
               paddingVertical: 6,
               paddingHorizontal: 10,
-              borderRadius: 8,
-              backgroundColor: 'rgba(255,255,255,0.9)',
+              borderRadius: 10,
+              backgroundColor: 'rgba(255,255,255,0.95)',
+              borderWidth: 1,
+              borderColor: 'rgba(0,0,0,0.06)',
               opacity: candidate.image_url ? 1 : 0.6,
             }}
           >
@@ -254,65 +264,118 @@ export default function CandidateDetails() {
           </Pressable>
         </View>
 
-        <Text style={{ fontSize: 24, fontWeight: '700', color: 'white', marginBottom: 16 }}>
+        <Text style={{ fontSize: 28, fontWeight: '600', color: 'white', marginTop: 15, marginBottom: 15, letterSpacing: 0.3, textAlign: 'center' }}>
           {candidate.name}
         </Text>
 
-        {/* Birthday now formats to dd/mm/yyyy if present */}
-        <InfoRow label="Height" value={candidate.height_cm ? `${candidate.height_cm} cm` : '—'} />
-        <InfoRow label="Birthday" value={candidate.birthday ? formatDate(candidate.birthday) : '—'} />
-        {candidate.birthday && (
-          <InfoRow label="Age" value={`${computeAge(candidate.birthday)} years`} />
-        )}
-        <InfoRow label="Hobby" value={candidate.hobby || '—'} />
+        {/* Info pills: 2x2 grid */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12, marginTop: 15, }}>
+          <InfoPill title="Height" value={candidate.height_cm ? `${candidate.height_cm} cm` : '—'} />
+          <InfoPill title="Birthday" value={candidate.birthday ? formatDate(candidate.birthday) : '—'} />
+          <InfoPill title="Age" value={candidate.birthday ? `${computeAge(candidate.birthday)} years` : '—'} />
+          <InfoPill title="Hobby" value={candidate.hobby || '—'} />
+        </View>
 
         {error && <Text style={{ marginTop: 12, color: '#ffdddd' }}>{error}</Text>}
 
-        {/* Bottom controls: ← Vote → */}
-        <View style={{ flexDirection: 'row', marginTop: 24, alignItems: 'center', justifyContent: 'space-between' }}>
-          <Pressable
-            onPress={goPrev}
+        {/* Bottom controls: unified floating pill */}
+        <View style={{ position: 'absolute', left: 20, right: 20, bottom: 32, alignItems: 'center' }}>
+          <View
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              backgroundColor: 'rgba(255,255,255,0.25)',
+              flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
+              backgroundColor: 'rgba(255,255,255,0.16)',
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0)',
+              borderRadius: 40,
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              shadowColor: '#000',
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
             }}
           >
-            <Text style={{ color: 'white', fontSize: 20, fontWeight: '700' }}>{'<'}</Text>
-          </Pressable>
+            {/* Keep your three Pressables inside this wrapper */}
+            <Pressable
+              onPress={goPrev}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: 'rgba(255, 255, 255, 0)',
+                  borderWidth: 1,
+                  
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.08,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 6 },
+                  transform: [{ scale: pressed ? 0.96 : 1 }],
+                },
+              ]}
+            >
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: '800' }}>{'<'}</Text>
+            </Pressable>
 
-          <Pressable
-            onPress={handleVoteButtonPress}
-            disabled={voting}
-            style={{
-              backgroundColor: '#4f8cff',
-              paddingVertical: 14,
-              paddingHorizontal: 28,
-              borderRadius: 28,
-              opacity: voting ? 0.7 : 1,
-            }}
-          >
-            <Text style={{ color: 'white', fontSize: 18, fontWeight: '700' }}>
-              Vote
-            </Text>
-          </Pressable>
+            <Pressable
+              onPress={handleVoteButtonPress}
+              disabled={voting}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: '#515cfbff',
+                  paddingVertical: 20,
+                  paddingHorizontal: 32,
+                  borderRadius: 30,
+                  opacity: voting ? 0.7 : 1,
+                  shadowColor: '#8440ebff',
+                  shadowOpacity: 0.12,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 6 },
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0)',
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                },
+              ]}
+            >
+              <Text style={{ color: 'white', fontSize: 18, fontWeight: '800' }}>
+                Vote
+              </Text>
+            </Pressable>
 
-          <Pressable
-            onPress={goNext}
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              backgroundColor: 'rgba(255,255,255,0.25)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: 'white', fontSize: 20, fontWeight: '700' }}>{'>'}</Text>
-          </Pressable>
+            <Pressable
+              onPress={goNext}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderColor: 'rgba(255, 255, 255, 0)',
+                  borderWidth: 1,
+                  
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 16,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.08,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 6 },
+                  transform: [{ scale: pressed ? 0.96 : 1 }],
+                },
+              ]}
+            >
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: '800' }}>{'>'}</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
 
@@ -451,19 +514,49 @@ export default function CandidateDetails() {
   );
 }
 
+function InfoPill({ title, value }: { title: string; value: string }) {
+  return (
+    <View
+      style={{
+        width: '48%',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderColor: 'rgba(255,255,255,0.3)',
+        borderRadius: 20,
+        paddingVertical: 18,
+        paddingHorizontal: 16,
+        borderWidth: 1,
+        
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+      }}
+    >
+      <Text style={{ color: 'white', fontSize: 14, fontWeight: '300', textAlign: 'center' }}>{title}</Text>
+      <Text style={{ color: 'white', fontSize: 17, fontWeight: '500', textAlign: 'center', marginTop: 10 }}>{value}</Text>
+    </View>
+  );
+}
+
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View
       style={{
-        backgroundColor: 'rgba(255,255,255,0.25)',
-        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.22)',
+        borderRadius: 18,
         paddingVertical: 12,
         paddingHorizontal: 16,
-        marginBottom: 10,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.35)',
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
       }}
     >
-      <Text style={{ color: 'white', opacity: 0.8 }}>{label}</Text>
-      <Text style={{ color: 'white', fontWeight: '600', marginTop: 4 }}>{value}</Text>
+      <Text style={{ color: 'white', opacity: 0.9, fontSize: 14 }}>{label}</Text>
+      <Text style={{ color: 'white', fontWeight: '700', marginTop: 4, fontSize: 16 }}>{value}</Text>
     </View>
   );
 }

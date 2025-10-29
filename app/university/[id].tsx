@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, Text, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 type Candidate = {
@@ -9,6 +9,7 @@ type Candidate = {
   waist_number: number | null;
   gender: string;
   university_id: string;
+  image_url: string | null;
 };
 
 export default function UniversityCandidates() {
@@ -28,7 +29,7 @@ export default function UniversityCandidates() {
 
       const { data: cand, error: candErr } = await supabase
         .from('candidates')
-        .select('id, name, waist_number, gender, university_id')
+        .select('id, name, waist_number, gender, university_id, image_url')
         .eq('university_id', id as string)
         .ilike('gender', gender)
         .eq('is_active', true)
@@ -45,10 +46,12 @@ export default function UniversityCandidates() {
   }, [id, gender]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
       <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
-        <Text style={{ fontSize: 24, fontWeight: '700', color: 'white' }}>Choose Candidate</Text>
-        <Text style={{ marginTop: 6, color: 'white', opacity: 0.9 }}>
+        <Text style={{ fontSize: 30, fontWeight: '800', color: 'white', letterSpacing: 0.3 }}>
+          Choose Candidate
+        </Text>
+        <Text style={{ marginTop: 6, color: 'rgba(255,255,255,0.95)', fontSize: 15 }}>
           {universityName ? `University: ${universityName}` : 'Select a person to view details'}
         </Text>
 
@@ -94,20 +97,25 @@ export default function UniversityCandidates() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <Pressable
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    paddingHorizontal: 16,
-                    marginBottom: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    shadowColor: '#000',
-                    shadowOpacity: 0.1,
-                    shadowRadius: 8,
-                    shadowOffset: { width: 0, height: 4 },
-                  }}
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: 'white',
+                      borderRadius: 18,
+                      paddingVertical: 14,
+                      paddingHorizontal: 16,
+                      marginBottom: 14,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                      shadowColor: '#000',
+                      shadowOpacity: 0.08,
+                      shadowRadius: 10,
+                      shadowOffset: { width: 0, height: 6 },
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
+                    },
+                  ]}
                   onPress={() => {
                     router.push({
                       pathname: '/candidate/[id]',
@@ -115,23 +123,50 @@ export default function UniversityCandidates() {
                     });
                   }}
                 >
-                  <View style={{ flex: 1, paddingRight: 8 }}>
-                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#222' }}>{item.name}</Text>
-                    {item.waist_number != null && (
-                      <Text style={{ marginTop: 2, color: '#666' }}>No. {item.waist_number}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 10 }}>
+                    {/* Avatar */}
+                    {item.image_url ? (
+                      <Image
+                        source={{ uri: item.image_url }}
+                        style={{ width: 44, height: 44, borderRadius: 22, marginRight: 12 }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 22,
+                          backgroundColor: '#fff5db',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginRight: 12,
+                        }}
+                      >
+                        <Text style={{ fontSize: 22 }}>👤</Text>
+                      </View>
                     )}
+
+                    {/* Name + Waist number */}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 20, fontWeight: '700', color: '#222' }}>{item.name}</Text>
+                      {/* {item.waist_number != null && (
+                        <Text style={{ marginTop: 4, color: '#6b7280' }}>No. {item.waist_number}</Text>
+                      )} */}
+                    </View>
                   </View>
+
+                  {/* Right-side number pill */}
                   <View
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      backgroundColor: '#eef2ff',
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#f2f2f7',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 16, color: '#4f5d95' }}>
+                    <Text style={{ fontSize: 16, color: '#333' }}>
                       {item.waist_number ?? '—'}
                     </Text>
                   </View>

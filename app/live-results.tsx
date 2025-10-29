@@ -1,6 +1,6 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
 import { supabase } from '../lib/supabase';
 
 type University = { id: string; name: string };
@@ -146,30 +146,59 @@ export default function LiveResults() {
   }, [topRows]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
       <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
-        <Text style={{ fontSize: 24, fontWeight: '700', color: 'white' }}>Live Results</Text>
-        <Text style={{ marginTop: 6, color: 'white', opacity: 0.9 }}>
+        <Text
+          style={{
+            fontSize: 26,
+            fontWeight: '800',
+            color: 'white',
+            textAlign: 'center',
+            letterSpacing: 0.3,
+          }}
+        >
+          Live Results
+        </Text>
+        <Text style={{ marginTop: 6, color: 'white', opacity: 0.9, textAlign: 'center' }}>
           {selectedUniversityName ? `University: ${selectedUniversityName}` : 'Choose a university to view results'}
         </Text>
 
-        {/* University quick selector (compact) */}
+        {/* University segmented control */}
         {universities.length > 0 && (
-          <View style={{ flexDirection: 'row', marginTop: 12, columnGap: 8, flexWrap: 'wrap' }}>
-            {universities.slice(0, 6).map(u => (
-              <Pressable
-                key={u.id}
-                onPress={() => setSelectedUniversityId(u.id)}
-                style={{
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  borderRadius: 12,
-                  backgroundColor: selectedUniversityId === u.id ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.25)',
-                }}
-              >
-                <Text style={{ color: '#222', fontWeight: '600' }}>{u.name}</Text>
-              </Pressable>
-            ))}
+          <View style={{ marginTop: 12, alignSelf: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                backgroundColor: 'rgba(255,255,255,0.16)',
+                borderRadius: 24,
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.35)',
+                padding: 6,
+                columnGap: 6,
+              }}
+            >
+              {universities.slice(0, 6).map((u) => (
+                <Pressable
+                  key={u.id}
+                  onPress={() => setSelectedUniversityId(u.id)}
+                  style={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    borderRadius: 18,
+                    backgroundColor: selectedUniversityId === u.id ? 'rgba(255,255,255,0.85)' : 'transparent',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: selectedUniversityId === u.id ? '#222' : 'white',
+                      fontWeight: '700',
+                    }}
+                  >
+                    {u.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         )}
 
@@ -185,41 +214,41 @@ export default function LiveResults() {
             <FlatList
               data={orderedCategories}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ rowGap: 14, paddingBottom: 24 }}
+              contentContainerStyle={{ rowGap: 16, paddingBottom: 24 }}
               renderItem={({ item }) => {
                 const top = topsByCategoryId.get(item.id);
                 const cand = top ? candidates[top.candidate_id] : undefined;
 
                 return (
                   <View>
-                    <Text style={{ color: 'white', marginBottom: 8, fontWeight: '600' }}>
+                    <Text style={{ color: 'white', marginBottom: 8, fontWeight: '600', opacity: 0.9 }}>
                       {getCategoryLabel(item.gender, item.type)} Top value result
                     </Text>
 
-                    {/* Pill */}
+                    {/* Result card */}
                     <View
                       style={{
                         backgroundColor: 'white',
                         borderRadius: 24,
-                        paddingVertical: 12,
+                        paddingVertical: 14,
                         paddingHorizontal: 16,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         borderWidth: 1,
-                        borderColor: '#e6e6e6',
+                        borderColor: 'rgba(0,0,0,0.06)',
                         shadowColor: '#000',
                         shadowOpacity: 0.08,
-                        shadowRadius: 8,
-                        shadowOffset: { width: 0, height: 4 },
+                        shadowRadius: 10,
+                        shadowOffset: { width: 0, height: 6 },
                       }}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View
                           style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
                             backgroundColor: '#eef2ff',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -229,17 +258,15 @@ export default function LiveResults() {
                           }}
                         >
                           {cand?.image_url ? (
-                            <Image
-                              source={{ uri: cand.image_url }}
-                              style={{ width: 40, height: 40, borderRadius: 20 }}
-                              resizeMode="cover"
-                            />
+                            <Image source={{ uri: cand.image_url }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
                           ) : (
-                            <Text style={{ fontSize: 18, color: '#333' }}>👤</Text>
+                            <Text style={{ fontSize: 16, color: '#333', fontWeight: '700' }}>
+                              {(cand?.name ?? '—').charAt(0).toUpperCase()}
+                            </Text>
                           )}
                         </View>
                         <View>
-                          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222' }}>
+                          <Text style={{ fontSize: 16, fontWeight: '700', color: '#222' }}>
                             {cand?.name ?? 'No votes yet'}
                           </Text>
                           <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
@@ -248,8 +275,21 @@ export default function LiveResults() {
                         </View>
                       </View>
 
-                      <View>
-                        <Text style={{ fontSize: 18, fontWeight: '700', color: '#222' }}>
+                      {/* Vote count pill */}
+                      <View
+                        style={{
+                          minWidth: 40,
+                          height: 40,
+                          paddingHorizontal: 12,
+                          borderRadius: 20,
+                          backgroundColor: 'rgba(79,140,255,0.12)',
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.06)',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 18, fontWeight: '800', color: '#005fcc' }}>
                           {formatNumber(top?.votes ?? 0)}
                         </Text>
                       </View>

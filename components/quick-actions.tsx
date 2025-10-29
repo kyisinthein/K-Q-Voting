@@ -26,8 +26,10 @@ export default function QuickActionsFloating() {
             style={{
               width: 56,
               height: 56,
-              borderRadius: 28,
-              backgroundColor: 'white',
+              
+              borderTopLeftRadius: 25,
+              borderBottomLeftRadius: 25,
+              backgroundColor: 'rgba(239, 206, 72, 0.45)',
               position: 'relative',
               right: -12,
               alignItems: 'center',
@@ -39,7 +41,7 @@ export default function QuickActionsFloating() {
               elevation: 8,
             }}
           >
-            <Text style={{ fontSize: 18, fontWeight: '700' }}>{'<<'}</Text>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'<<'}</Text>
           </Pressable>
         </View>
       </View>
@@ -70,7 +72,7 @@ export default function QuickActionsFloating() {
                 <ActionTile icon="list.bullet" label="List" onPress={() => comingSoon('List')} />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
-                <ActionTile icon="book.fill" label="User Guide" onPress={() => comingSoon('User Guide')} />
+                <ActionTile icon="book.fill" label="User Guide" onPress={() => { setOpen(false); router.push('/user-guide'); }} />
                 <ActionTile icon="envelope.fill" label="Messages" onPress={() => comingSoon('Messages')} />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
@@ -78,7 +80,7 @@ export default function QuickActionsFloating() {
                 <ActionTile icon="lock.fill" label="Admin" onPress={() => { setOpen(false); router.push('/admin/login'); }} />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
-                <ActionTile icon="info.circle.fill" label="About us" onPress={() => comingSoon('About us')} />
+                <ActionTile icon="info.circle.fill" label="About us" onPress={() => { setOpen(false); router.push('/about'); }} />
                 <ActionTile icon="envelope.fill" label="Messages" onPress={() => comingSoon('Messages')} />
               </View>
             </View>
