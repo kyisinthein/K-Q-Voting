@@ -1,5 +1,6 @@
+// Top-level imports and types
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, SafeAreaView, ScrollView, Text, View, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
@@ -12,6 +13,7 @@ type Row = {
   waist_number: number | null;
   name: string;
   votes: number;
+  image_url?: string | null; // optional if RPC already returns it
 };
 
 type CategoryGroup = {
@@ -40,6 +42,7 @@ export default function AdminResults() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState<string>('');
+  const [imagesById, setImagesById] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     (async () => {
@@ -74,6 +77,36 @@ export default function AdminResults() {
       }
     })();
   }, [university_id, pw]);
+
+  // Fetch candidate images for all IDs present (if not already provided by RPC)
+  useEffect(() => {
+    (async () => {
+      const ids = Array.from(new Set(rows.map(r => r.candidate_id)));
+      if (ids.length === 0) return;
+
+      // If rows already carry image_url, prefer them
+      const prefilled: Record<string, string | null> = {};
+      rows.forEach(r => {
+        if (typeof r.image_url !== 'undefined') prefilled[r.candidate_id] = r.image_url ?? null;
+      });
+
+      // Fetch any missing ones from candidates
+      const missing = ids.filter(id => !(id in prefilled));
+      if (missing.length > 0) {
+        const { data, error } = await supabase
+          .from('candidates')
+          .select('id, image_url')
+          .in('id', missing);
+        if (!error && Array.isArray(data)) {
+          data.forEach((c: any) => {
+            prefilled[c.id] = c.image_url ?? null;
+          });
+        }
+      }
+
+      setImagesById(prefilled);
+    })();
+  }, [rows]);
 
   // Group rows by gender-type and sort within each group by votes desc
   const grouped: CategoryGroup[] = useMemo(() => {
@@ -120,53 +153,107 @@ export default function AdminResults() {
 
   const renderCandidateItem = ({ item, index }: { item: Row; index: number }) => {
     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+    const imageUrl = imagesById[item.candidate_id] ?? null;
+
     return (
       <View
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
+          backgroundColor: 'white',
+          borderRadius: 16,
           paddingVertical: 12,
           paddingHorizontal: 16,
-          backgroundColor: index === 0 ? 'rgba(255, 215, 0, 0.10)' : 'rgba(255, 255, 255, 0.06)',
-          marginVertical: 2,
-          borderRadius: 8,
-          borderLeftWidth: index === 0 ? 4 : 0,
-          borderLeftColor: '#FFD700',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderWidth: 1,
+          borderColor: 'rgba(0,0,0,0.06)',
+          shadowColor: '#000',
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 6 },
         }}
       >
-        <Text style={{ fontSize: 18, marginRight: 12, minWidth: 32 }}>
-          {medal || `${index + 1}.`}
-        </Text>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16, fontWeight: '600', color: 'white' }}>{item.name}</Text>
-          {item.waist_number && (
-            <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.7)' }}>#{item.waist_number}</Text>
-          )}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, marginRight: 8 }}>{medal || `${index + 1}.`}</Text>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: '#eef2ff',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 12,
+              borderWidth: 1,
+              borderColor: '#d5dbff',
+            }}
+          >
+            {imageUrl ? (
+              <Image source={{ uri: imageUrl }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
+            ) : (
+              <Text style={{ fontSize: 16, color: '#333', fontWeight: '700' }}>
+                {item.name?.charAt(0)?.toUpperCase() ?? '—'}
+              </Text>
+            )}
+          </View>
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#222' }}>{item.name}</Text>
+            {item.waist_number !== null && (
+              <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>#{item.waist_number}</Text>
+            )}
+          </View>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#4f8cff' }}>{item.votes}</Text>
-          <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.6)' }}>votes</Text>
+
+        <View
+          style={{
+            minWidth: 40,
+            height: 40,
+            paddingHorizontal: 12,
+            borderRadius: 20,
+            backgroundColor: 'rgba(79,140,255,0.12)',
+            borderWidth: 1,
+            borderColor: 'rgba(0,0,0,0.06)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#005fcc' }}>{item.votes}</Text>
         </View>
       </View>
     );
   };
 
   const renderCategorySection = ({ item }: { item: CategoryGroup }) => (
-    <View style={{ marginBottom: 24 }}>
-      <Text style={{ fontSize: 20, fontWeight: '700', color: 'white', marginBottom: 12, paddingHorizontal: 16 }}>
+    <View style={{ marginBottom: 24, paddingHorizontal: 16 }}>
+      <Text style={{ fontSize: 20, fontWeight: '700', color: 'white', marginBottom: 8 }}>
         {item.label}
       </Text>
       {item.candidates.length === 0 ? (
-        <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic', paddingHorizontal: 16 }}>
+        <Text style={{ color: 'rgba(255, 255, 255, 0.7)', fontStyle: 'italic' }}>
           No candidates in this category
         </Text>
       ) : (
-        <FlatList
-          data={item.candidates}
-          renderItem={renderCandidateItem}
-          keyExtractor={(candidate) => candidate.candidate_id}
-          scrollEnabled={false}
-        />
+        <View
+          style={{
+            backgroundColor: 'white',
+            borderRadius: 20,
+            padding: 8,
+            borderWidth: 1,
+            borderColor: 'rgba(0,0,0,0.06)',
+            shadowColor: '#000',
+            shadowOpacity: 0.08,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 6 },
+          }}
+        >
+          <FlatList
+            data={item.candidates}
+            renderItem={renderCandidateItem}
+            keyExtractor={(candidate) => candidate.candidate_id}
+            scrollEnabled={false}
+            contentContainerStyle={{ rowGap: 10 }}
+          />
+        </View>
       )}
     </View>
   );

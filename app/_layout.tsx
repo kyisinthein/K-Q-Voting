@@ -26,6 +26,8 @@ export default function RootLayout() {
         <Stack.Screen name="user-guide" options={{ headerShown: false }} />
         {/* About Us immersive screen */}
         <Stack.Screen name="about" options={{ headerShown: false }} />
+        {/* Hide header for the entire admin subtree */}
+        <Stack.Screen name="admin" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       {/* Floating quick actions on all screens */}

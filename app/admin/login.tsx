@@ -1,6 +1,6 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
 type University = { id: string; name: string };
@@ -61,20 +61,60 @@ export default function AdminLogin() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
       <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
-        <Text style={{ fontSize: 24, fontWeight: '700', color: 'white' }}>Admin Login</Text>
-        <Text style={{ marginTop: 6, color: 'white', opacity: 0.9 }}>
-          Select university and enter admin password
-        </Text>
+        {/* Header */}
+        <View style={{ alignItems: 'center', marginBottom: 12 }}>
+          <Text
+            style={{
+              fontSize: 26,
+              fontWeight: '800',
+              color: 'white',
+              textAlign: 'center',
+              letterSpacing: 0.3,
+            }}
+          >
+            Admin Login
+          </Text>
+          <Text style={{ marginTop: 6, color: 'white', opacity: 0.9, textAlign: 'center' }}>
+            Select university and enter admin password
+          </Text>
+        </View>
 
-        <View style={{ marginTop: 16 }}>
-          {loading && <ActivityIndicator color="#fff" />}
-          {error && <Text style={{ marginTop: 8, color: '#ffdddd' }}>{error}</Text>}
+        {/* Card form */}
+        <View
+          style={{
+            backgroundColor: 'white',
+            borderRadius: 20,
+            paddingVertical: 16,
+            paddingHorizontal: 16,
+            borderWidth: 1,
+            borderColor: 'rgba(0,0,0,0.06)',
+            shadowColor: '#000',
+            shadowOpacity: 0.08,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 6 },
+            width: '100%',
+            maxWidth: 460,
+            alignSelf: 'center',
+          }}
+        >
+          {loading && <ActivityIndicator color="#6a5acd" />}
+          {error && <Text style={{ marginTop: 8, color: '#b00020' }}>{error}</Text>}
           {!loading && (
             <>
-              <Text style={{ color: 'white', marginBottom: 8 }}>University</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 8, rowGap: 8 }}>
+              <Text style={{ color: '#555', marginBottom: 8, fontWeight: '600' }}>University</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  columnGap: 8,
+                  rowGap: 8,
+                  backgroundColor: 'rgba(0,0,0,0.04)',
+                  borderRadius: 16,
+                  padding: 8,
+                }}
+              >
                 {universities.map((u) => (
                   <Pressable
                     key={u.id}
@@ -83,27 +123,38 @@ export default function AdminLogin() {
                       paddingVertical: 8,
                       paddingHorizontal: 12,
                       borderRadius: 12,
-                      backgroundColor: selected === u.id ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.25)',
+                      backgroundColor: selected === u.id ? 'rgba(79,140,255,0.15)' : 'transparent',
+                      borderWidth: 1,
+                      borderColor: selected === u.id ? '#4f8cff' : 'rgba(0,0,0,0.08)',
                     }}
                   >
-                    <Text style={{ color: '#222', fontWeight: '600' }}>{u.name}</Text>
+                    <Text
+                      style={{
+                        color: selected === u.id ? '#005fcc' : '#222',
+                        fontWeight: '700',
+                      }}
+                    >
+                      {u.name}
+                    </Text>
                   </Pressable>
                 ))}
               </View>
 
-              <Text style={{ color: 'white', marginTop: 16, marginBottom: 8 }}>Password</Text>
+              <Text style={{ color: '#555', marginTop: 16, marginBottom: 8, fontWeight: '600' }}>Password</Text>
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
                 placeholder="Admin password"
-                placeholderTextColor="rgba(255,255,255,0.7)"
+                placeholderTextColor="#999"
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.25)',
-                  color: 'white',
+                  backgroundColor: '#f5f7ff',
+                  color: '#111',
                   borderRadius: 12,
                   paddingVertical: 12,
                   paddingHorizontal: 12,
+                  borderWidth: 1,
+                  borderColor: '#d5dbff',
                 }}
               />
 
@@ -116,9 +167,13 @@ export default function AdminLogin() {
                   paddingVertical: 12,
                   borderRadius: 12,
                   opacity: verifying ? 0.7 : 1,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 4 },
                 }}
               >
-                <Text style={{ textAlign: 'center', color: 'white', fontWeight: '700' }}>
+                <Text style={{ textAlign: 'center', color: 'white', fontWeight: '800' }}>
                   {verifying ? 'Verifying…' : 'Sign in'}
                 </Text>
               </Pressable>

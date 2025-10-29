@@ -1,6 +1,6 @@
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, Text, View, Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { ActivityIndicator, Alert, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 type University = {
