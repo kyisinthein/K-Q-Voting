@@ -21,7 +21,7 @@ function getCategoryLabel(gender: string, type: string): string {
   const t = type.toLowerCase();
   if (t === 'king') return g === 'female' ? 'Queen' : 'King';
   if (t === 'style') return 'Style';
-  if (t === 'popular') return 'Smart';
+  if (t === 'popular') return 'Popular';
   if (t === 'innocent') return 'Innocent';
   return type;
 }

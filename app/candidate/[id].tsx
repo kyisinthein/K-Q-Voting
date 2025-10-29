@@ -84,7 +84,7 @@ export default function CandidateDetails() {
       const deviceId = await getDeviceId();
       const { data, error } = await supabase.rpc('get_device_ticket_usage', {
         univ_id: candidate.university_id,
-        device_id: deviceId,
+        p_device_id: deviceId, // renamed param
       });
   
       if (error) throw error;
@@ -133,11 +133,11 @@ export default function CandidateDetails() {
   }
 
   function getCategoryDisplayName(type: string): string {
-    // Feel free to rename 'popular' to 'Smart' for UI:
+    // Feel free to rename 'popular' to 'Popular' for UI:
     switch (type) {
       case 'king': return candidate?.gender.toLowerCase() === 'male' ? 'King' : 'Queen';
       case 'style': return candidate?.gender.toLowerCase() === 'male' ? 'Style' : 'Style';
-      case 'popular': return 'Smart'; // UI label; DB type stays 'popular'
+      case 'popular': return 'Popular'; // UI label; DB type stays 'popular'
       case 'innocent': return 'Innocent';
       default: return type;
     }

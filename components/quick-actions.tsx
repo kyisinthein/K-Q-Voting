@@ -75,7 +75,11 @@ export default function QuickActionsFloating() {
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
                 <ActionTile icon="chart.bar.fill" label="Live Results" onPress={() => { setOpen(false); router.push('/live-results'); }} />
+                <ActionTile icon="lock.fill" label="Admin" onPress={() => { setOpen(false); router.push('/admin/login'); }} />
+              </View>
+              <View style={{ flexDirection: 'row', columnGap: 10 }}>
                 <ActionTile icon="info.circle.fill" label="About us" onPress={() => comingSoon('About us')} />
+                <ActionTile icon="envelope.fill" label="Messages" onPress={() => comingSoon('Messages')} />
               </View>
             </View>
 
