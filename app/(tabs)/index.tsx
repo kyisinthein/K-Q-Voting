@@ -7,8 +7,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
-// Use your new Home screen in the Home tab
-export { default } from '../home';
+// Use Partners as the initial tab screen
+export { default } from '../partners';
 
 const styles = StyleSheet.create({
   titleContainer: {

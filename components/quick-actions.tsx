@@ -68,11 +68,15 @@ export default function QuickActionsFloating() {
 
             <View style={{ marginTop: 12, rowGap: 10 }}>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
-                <ActionTile icon="house.fill" label="Home" onPress={goHome} />
-                <ActionTile icon="list.bullet" label="List" onPress={() => comingSoon('List')} />
+                <ActionTile icon="house.fill" label="Home" onPress={() => { setOpen(false); router.push('/home'); }} />
+                <ActionTile
+                  icon="list.bullet"
+                  label="Sponsors"
+                  onPress={() => { setOpen(false); router.push('/sponsors'); }}
+                />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
-                <ActionTile icon="book.fill" label="User Guide" onPress={() => { setOpen(false); router.push('/user-guide'); }} />
+                <ActionTile icon="book.fill" label="User Guide" onPress={() => { setOpen(false); router.push('/partners'); }} />
                 <ActionTile icon="chart.bar.fill" label="Live Results" onPress={() => { setOpen(false); router.push('/live-results'); }} />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
