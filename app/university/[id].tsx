@@ -1,7 +1,11 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, Text, View } from 'react-native';
+import BackButton from '../../components/ui/back-button';
 import { supabase } from '../../lib/supabase';
+
+
 
 type Candidate = {
   id: string;
@@ -46,25 +50,42 @@ export default function UniversityCandidates() {
   }, [id, gender]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-      <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
-        <Text style={{ fontSize: 30, fontWeight: '800', color: 'white', letterSpacing: 0.3 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <LinearGradient
+        colors={['#538df8ff', '#5B3DB5', '#5B3DB5']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ flex: 1 }}
+      >
+      <BackButton
+        color="white"
+        style={{
+          top: 77,         // lower to sit well below the notch
+          left: 16,        // a bit more inset from the edge
+          zIndex: 20,      // ensure it floats above content
+          elevation: 3,    // Android visual stacking
+        }}
+      />
+      <View style={{ flex: 1, padding: 20, backgroundColor: 'transparent', marginTop: 60 }}>
+        <Text style={{ alignSelf: 'center', fontSize: 25, fontWeight: '800', color: 'white', letterSpacing: 0.3 }}>
           Choose Candidate
         </Text>
-        <Text style={{ marginTop: 6, color: 'rgba(255,255,255,0.95)', fontSize: 15 }}>
+        <Text style={{ alignSelf: 'center', marginTop: 15, color: 'rgba(255,255,255,0.95)', fontSize: 15 }}>
           {universityName ? `University: ${universityName}` : 'Select a person to view details'}
         </Text>
 
         {/* Gender tabs */}
-        <View style={{ flexDirection: 'row', marginTop: 16 }}>
+        <View style={{ flexDirection: 'row', marginTop: 25 }}>
           <Pressable
             onPress={() => setGender('Male')}
             style={{
               flex: 1,
-              backgroundColor: gender === 'Male' ? '#4f8cff' : 'rgba(255,255,255,0.25)',
-              paddingVertical: 12,
-              borderRadius: 12,
+              backgroundColor: gender === 'Male' ? 'rgba(0, 0, 255, 0.5)' : 'rgba(255,255,255,0.2)',
+              paddingVertical: 20,
+              borderRadius: 20,
               marginRight: 8,
+              borderColor: 'rgba(255,255,255,0.3)',
+              borderWidth: 1,
             }}
           >
             <Text style={{ textAlign: 'center', color: 'white', fontWeight: '600' }}>Male</Text>
@@ -73,10 +94,12 @@ export default function UniversityCandidates() {
             onPress={() => setGender('Female')}
             style={{
               flex: 1,
-              backgroundColor: gender === 'Female' ? '#4f8cff' : 'rgba(255,255,255,0.25)',
-              paddingVertical: 12,
-              borderRadius: 12,
+              backgroundColor: gender === 'Female' ? 'rgba(255, 0, 238, 0.5)' : 'rgba(255,255,255,0.2)',
+              paddingVertical: 20,
+              borderRadius: 20,
               marginLeft: 8,
+              borderColor: 'rgba(255,255,255,0.3)',
+              borderWidth: 1,
             }}
           >
             <Text style={{ textAlign: 'center', color: 'white', fontWeight: '600' }}>Female</Text>
@@ -86,11 +109,11 @@ export default function UniversityCandidates() {
         {/* List */}
         <View style={{ flex: 1, marginTop: 16 }}>
           {loading && (
-            <View style={{ marginTop: 24 }}>
+            <View style={{ marginTop: 200 }}>
               <ActivityIndicator color="#fff" />
             </View>
           )}
-          {error && <Text style={{ marginTop: 12, color: '#ffdddd' }}>{error}</Text>}
+          {error && <Text style={{ marginTop: 100, color: '#ffdddd' }}>{error}</Text>}
           {!loading && !error && (
             <FlatList
               data={candidates}
@@ -99,20 +122,21 @@ export default function UniversityCandidates() {
                 <Pressable
                   style={({ pressed }) => [
                     {
-                      backgroundColor: 'white',
-                      borderRadius: 18,
-                      paddingVertical: 14,
-                      paddingHorizontal: 16,
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      borderColor: 'rgba(255,255,255,0.3)',
+                      borderRadius: 40,
+                      paddingVertical: 15,
+                      paddingHorizontal: 20,
                       marginBottom: 14,
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.06)',
-                      shadowColor: '#000',
-                      shadowOpacity: 0.08,
-                      shadowRadius: 10,
-                      shadowOffset: { width: 0, height: 6 },
+                      
+                      // shadowColor: '#000',
+                      // shadowOpacity: 0.08,
+                      // shadowRadius: 10,
+                      // shadowOffset: { width: 0, height: 6 },
                       transform: [{ scale: pressed ? 0.98 : 1 }],
                     },
                   ]}
@@ -128,7 +152,7 @@ export default function UniversityCandidates() {
                     {item.image_url ? (
                       <Image
                         source={{ uri: item.image_url }}
-                        style={{ width: 44, height: 44, borderRadius: 22, marginRight: 12 }}
+                        style={{ width: 50, height: 50, borderRadius: 30, marginRight: 12 }}
                       />
                     ) : (
                       <View
@@ -148,7 +172,7 @@ export default function UniversityCandidates() {
 
                     {/* Name + Waist number */}
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 20, fontWeight: '700', color: '#222' }}>{item.name}</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '400', color: '#ffffffff' }}>{item.name}</Text>
                       {/* {item.waist_number != null && (
                         <Text style={{ marginTop: 4, color: '#6b7280' }}>No. {item.waist_number}</Text>
                       )} */}
@@ -158,15 +182,15 @@ export default function UniversityCandidates() {
                   {/* Right-side number pill */}
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f2f2f7',
+                      width: 45,
+                      height: 45,
+                      borderRadius: 30,
+                      backgroundColor: 'rgba(255,255,255,0.3)',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 16, color: '#333' }}>
+                    <Text style={{ fontSize: 20, fontWeight: 600, color: '#ffffffff' }}>
                       {item.waist_number ?? '—'}
                     </Text>
                   </View>
@@ -176,6 +200,7 @@ export default function UniversityCandidates() {
           )}
         </View>
       </View>
+      </LinearGradient>
     </SafeAreaView>
   );
 }

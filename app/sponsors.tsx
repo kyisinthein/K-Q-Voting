@@ -1,8 +1,8 @@
 // Fix imports: use Expo Image only
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import React from 'react';
 import { Linking, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import BackButton from '../components/ui/back-button';
 
 // type Sponsor and data sections inside the Sponsors() component
 type Sponsor = {
@@ -58,7 +58,17 @@ export default function Sponsors() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-      <View style={{ flex: 1, padding: 20, backgroundColor: 'white' }}>
+       {/* Back button */}
+      <BackButton
+        color="black"
+        style={{
+          top: 75,
+          left: 16,
+          zIndex: 20,
+          elevation: 3,
+        }}
+      />
+      <View style={{ flex: 1, padding: 20, backgroundColor: 'white', marginTop: 60}}>
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 12 }}>
           <Text
@@ -72,12 +82,12 @@ export default function Sponsors() {
           >
             Our Sponsors
           </Text>
-          <Text style={{ marginTop: 6, color: '#555', textAlign: 'center' }}>
+          <Text style={{ marginTop: 15, color: '#555', textAlign: 'center' }}>
             Huge thanks to our partners who make this possible.
           </Text>
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 24, paddingTop: 15 }}>
           {/* Presenting Sponsor */}
           <View style={{ marginBottom: 24 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8, marginBottom: 10 }}>
@@ -100,7 +110,7 @@ export default function Sponsors() {
               {presenting[0]?.logoUrl ? (
                 <Image
                   source={{ uri: presenting[0].logoUrl! }}
-                  style={{ width: '100%', height: 180 }}
+                  style={{ width: '100%', height: 150 }}
                   contentFit="contain"
                 />
               ) : (
@@ -146,7 +156,7 @@ export default function Sponsors() {
                     }}
                   >
                     {platinum[0].logoUrl ? (
-                      <Image source={{ uri: platinum[0].logoUrl }} style={{ width: '100%', height: 150 }} contentFit="contain" />
+                      <Image source={{ uri: platinum[0].logoUrl }} style={{ width: '100%', height: 130 }} contentFit="contain" />
                     ) : (
                       <Text style={{ color: '#333', fontWeight: '700' }}>{platinum[0].name}</Text>
                     )}
@@ -178,7 +188,7 @@ export default function Sponsors() {
                     }}
                   >
                     {platinum[1].logoUrl ? (
-                      <Image source={{ uri: platinum[1].logoUrl }} style={{ width: '100%', height: 150 }} contentFit="contain" />
+                      <Image source={{ uri: platinum[1].logoUrl }} style={{ width: '100%', height: 130 }} contentFit="contain" />
                     ) : (
                       <Text style={{ color: '#333', fontWeight: '700' }}>{platinum[1].name}</Text>
                     )}
@@ -259,7 +269,7 @@ export default function Sponsors() {
           </View>
 
           {/* CTA: Become a sponsor */}
-          <View style={{ marginTop: 4, alignItems: 'center' }}>
+          {/* <View style={{ marginTop: 4, alignItems: 'center' }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -298,7 +308,7 @@ export default function Sponsors() {
                 <Text style={{ color: '#1e90ff', fontWeight: '700' }}>About Us</Text>
               </Pressable>
             </View>
-          </View>
+          </View> */}
         </ScrollView>
       </View>
     </SafeAreaView>

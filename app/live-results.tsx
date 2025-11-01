@@ -1,6 +1,8 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, Text, View } from 'react-native';
+import BackButton from '../components/ui/back-button';
 import { supabase } from '../lib/supabase';
 
 type University = { id: string; name: string };
@@ -27,8 +29,18 @@ function getCategoryLabel(gender: string, type: string): string {
 }
 
 export default function LiveResults() {
+  // Normalize route param: treat 'null'/'undefined'/empty/non-UUID as null
+  function normalizeUUID(u?: string | null): string | null {
+    const s = (u ?? '').trim();
+    if (!s || s.toLowerCase() === 'null' || s.toLowerCase() === 'undefined') return null;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(s) ? s : null;
+  }
+
   const params = useLocalSearchParams<{ university_id?: string }>();
-  const [selectedUniversityId, setSelectedUniversityId] = useState<string | null>(typeof params.university_id === 'string' ? params.university_id : null);
+  const [selectedUniversityId, setSelectedUniversityId] = useState<string | null>(
+    normalizeUUID(typeof params.university_id === 'string' ? params.university_id : null)
+  );
   const [universities, setUniversities] = useState<University[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [topRows, setTopRows] = useState<TopRow[]>([]);
@@ -56,17 +68,15 @@ export default function LiveResults() {
             .order('name', { ascending: true });
           if (uniErr) throw new Error(uniErr.message);
           setUniversities(unis ?? []);
+
           const first = (unis ?? [])[0]?.id ?? null;
           setSelectedUniversityId(first);
-          if (!first) {
-            setCategories([]);
-            setTopRows([]);
-            setCandidates({});
-            setLoading(false);
-            return;
-          }
+
+          // Exit now; next render will run with a valid id (or none).
+          setLoading(false);
+          return;
         } else {
-          // Load universities for display
+          // Load universities for display if not already loaded
           if (universities.length === 0) {
             const { data: unis, error: uniErr } = await supabase
               .from('universities')
@@ -78,7 +88,13 @@ export default function LiveResults() {
           }
         }
 
-        const univId = selectedUniversityId!;
+        // Guard: only query if we have a valid UUID
+        const univId = selectedUniversityId;
+        if (!univId) {
+          setLoading(false);
+          return;
+        }
+
         // Fetch active categories for this university
         const { data: cats, error: catErr } = await supabase
           .from('categories')
@@ -104,6 +120,7 @@ export default function LiveResults() {
         if (topErr) throw new Error(topErr.message);
         setTopRows(tops ?? []);
 
+        // Fetch candidate display info
         const candIds = Array.from(new Set((tops ?? []).map(t => t.candidate_id)));
         let candMap: Record<string, Candidate> = {};
         if (candIds.length > 0) {
@@ -146,8 +163,25 @@ export default function LiveResults() {
   }, [topRows]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-      <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <LinearGradient
+              colors={['#538df8ff', '#5B3DB5', '#5B3DB5']} // top→middle→bottom
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{ flex: 1 }}
+            >
+       {/* Back button */}
+      <BackButton
+        color="white"
+        style={{
+          top: 70,
+          left: 16,
+          zIndex: 20,
+          elevation: 3,
+        }}
+      />
+      <View style={{ flex: 1, padding: 20, backgroundColor: 'transparent', marginTop: 55 }}>
+         
         <Text
           style={{
             fontSize: 26,
@@ -159,13 +193,13 @@ export default function LiveResults() {
         >
           Live Results
         </Text>
-        <Text style={{ marginTop: 6, color: 'white', opacity: 0.9, textAlign: 'center' }}>
+        {/* <Text style={{ marginTop: 6, color: 'white', opacity: 0.9, textAlign: 'center' }}>
           {selectedUniversityName ? `University: ${selectedUniversityName}` : 'Choose a university to view results'}
-        </Text>
+        </Text> */}
 
         {/* University segmented control */}
         {universities.length > 0 && (
-          <View style={{ marginTop: 12, alignSelf: 'center' }}>
+          <View style={{ marginTop: 20, alignSelf: 'center' }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -228,18 +262,14 @@ export default function LiveResults() {
                     {/* Result card */}
                     <View
                       style={{
-                        backgroundColor: 'white',
-                        borderRadius: 24,
-                        paddingVertical: 14,
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        borderColor: 'rgba(255,255,255,0.3)',
+                        borderRadius: 30,
+                        paddingVertical: 20,
                         paddingHorizontal: 16,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        borderWidth: 1,
-                        borderColor: 'rgba(0,0,0,0.06)',
-                        shadowColor: '#000',
-                        shadowOpacity: 0.08,
-                        shadowRadius: 10,
                         shadowOffset: { width: 0, height: 6 },
                       }}
                     >
@@ -258,7 +288,12 @@ export default function LiveResults() {
                           }}
                         >
                           {cand?.image_url ? (
-                            <Image source={{ uri: cand.image_url }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
+                            <Image
+                              source={{ uri: cand.image_url }}
+                              style={{ width: 44, height: 44, borderRadius: 22 }}
+                              resizeMode="cover"
+                              blurRadius={100} // strong blur for suspense
+                            />
                           ) : (
                             <Text style={{ fontSize: 16, color: '#333', fontWeight: '700' }}>
                               {(cand?.name ?? '—').charAt(0).toUpperCase()}
@@ -266,11 +301,8 @@ export default function LiveResults() {
                           )}
                         </View>
                         <View>
-                          <Text style={{ fontSize: 16, fontWeight: '700', color: '#222' }}>
-                            {cand?.name ?? 'No votes yet'}
-                          </Text>
-                          <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
-                            {item.gender.toLowerCase() === 'female' ? 'Female' : 'Male'}
+                          <Text style={{ fontSize: 16, fontWeight: '700', color: 'white' }}>
+                            {cand ? 'Who will it be?' : 'No votes yet'}
                           </Text>
                         </View>
                       </View>
@@ -282,14 +314,14 @@ export default function LiveResults() {
                           height: 40,
                           paddingHorizontal: 12,
                           borderRadius: 20,
-                          backgroundColor: 'rgba(79,140,255,0.12)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.21)',
                           borderWidth: 1,
-                          borderColor: 'rgba(0,0,0,0.06)',
+                          borderColor: 'rgba(255, 255, 255, 0.22)',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ fontSize: 18, fontWeight: '800', color: '#005fcc' }}>
+                        <Text style={{ fontSize: 15, fontWeight: '400', color: '#ffffffff' }}>
                           {formatNumber(top?.votes ?? 0)}
                         </Text>
                       </View>
@@ -307,6 +339,7 @@ export default function LiveResults() {
           )}
         </View>
       </View>
+      </LinearGradient>
     </SafeAreaView>
   );
 }

@@ -1,6 +1,9 @@
+// imports
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, SafeAreaView, Text, View } from 'react-native';
+import BackButton from '../../components/ui/back-button';
 import { getDeviceId } from '../../lib/device-id';
 import { supabase } from '../../lib/supabase';
 
@@ -33,6 +36,8 @@ export default function CandidateDetails() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [ticketsLeft, setTicketsLeft] = useState<number | null>(null);
+  const [prevNeighborId, setPrevNeighborId] = useState<string | null>(null);
+  const [nextNeighborId, setNextNeighborId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -102,14 +107,15 @@ export default function CandidateDetails() {
     }
   }
 
+  // In CandidateDetails component: update submitVote()
   async function submitVote() {
     if (!candidate || !selectedCategory) return;
     setVoting(true);
     setError(null);
-
+  
     try {
       const deviceId = await getDeviceId();
-
+  
       const { error: voteErr } = await supabase
         .from('votes')
         .insert({
@@ -118,15 +124,25 @@ export default function CandidateDetails() {
           candidate_id: candidate.id,
           device_id: deviceId,
         });
-
+  
       if (voteErr) {
         throw voteErr;
       }
-
+  
       setShowCategoryModal(false);
-      Alert.alert('Vote submitted', 'Thank you for your vote!');
+      Alert.alert('Voted!', 'သင်အကြိုက်ဆုံးသူ အနိုင်ရမယ်လို့ မျှော်လင့်ပါတယ်');
     } catch (e: any) {
-      setError(e.message ?? 'Unable to cast vote.');
+      const msg = String(e?.message ?? '');
+      const code = e?.code ?? e?.data?.code;
+  
+      // Map unique constraint violation to a friendly message
+      if (code === '23505' || msg.includes('duplicate key value')) {
+        setError('You have already voted in this category with this device.');
+        // If you prefer Burmese:
+        // setError('ဤအမျိုးအစားတွင် သင့်စက်မှ မဲပေးပြီးသားဖြစ်ပါသည်။');
+      } else {
+        setError('Unable to cast vote. Please try again.');
+      }
     } finally {
       setVoting(false);
     }
@@ -143,23 +159,7 @@ export default function CandidateDetails() {
     }
   }
 
-  if (loading) {
-    return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
-      </SafeAreaView>
-    );
-  }
-
-  if (!candidate) {
-    return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Candidate not found</Text>
-        {error && <Text style={{ marginTop: 8, color: 'red' }}>{error}</Text>}
-      </SafeAreaView>
-    );
-  }
-
+  // Move neighbor lookup ABOVE early returns to keep hook order stable
   async function findNeighbor(direction: 'next' | 'prev') {
     if (!candidate || candidate.waist_number == null) return null;
 
@@ -179,337 +179,393 @@ export default function CandidateDetails() {
     return row?.id ?? null;
   }
 
-  async function goPrev() {
-    const prevId = await findNeighbor('prev');
-    if (prevId) {
-      router.push(`/candidate/${prevId}`);
-    } else {
-      Alert.alert('No previous candidate', 'You are at the first candidate.');
+  // Compute neighbors BEFORE any early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!candidate || candidate.waist_number == null) {
+      setPrevNeighborId(null);
+      setNextNeighborId(null);
+      return;
     }
+
+    let canceled = false;
+    (async () => {
+      const prevId = await findNeighbor('prev');
+      const nextId = await findNeighbor('next');
+      if (!canceled) {
+        setPrevNeighborId(prevId);
+        setNextNeighborId(nextId);
+      }
+    })();
+
+    return () => {
+      canceled = true;
+    };
+  }, [
+    candidate?.id,
+    candidate?.waist_number,
+    candidate?.university_id,
+    candidate?.gender,
+  ]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </SafeAreaView>
+    );
+  }
+
+  if (!candidate) {
+    return (
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>Candidate not found</Text>
+        {error && <Text style={{ marginTop: 8, color: 'red' }}>{error}</Text>}
+      </SafeAreaView>
+    );
+  }
+
+  async function goPrev() {
+    if (!prevNeighborId) return; // disabled: do nothing
+    router.push(`/candidate/${prevNeighborId}`);
   }
 
   async function goNext() {
-    const nextId = await findNeighbor('next');
-    if (nextId) {
-      router.push(`/candidate/${nextId}`);
-    } else {
-      Alert.alert('No next candidate', 'You are at the last candidate.');
-    }
+    if (!nextNeighborId) return; // disabled: do nothing
+    router.push(`/candidate/${nextNeighborId}`);
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-      <View style={{ flex: 1, padding: 20, paddingBottom: 110, backgroundColor: '#6a5acd' }}>
-        <View
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient
+        colors={['#538df8ff', '#6a30db']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ flex: 1 }}
+      >
+        <BackButton
+          color="white"
           style={{
-            backgroundColor: 'white',
-            borderRadius: 20,
-            overflow: 'hidden',
-            marginBottom: 16,
-            position: 'relative',
-            borderWidth: 3,
-            borderColor: 'rgba(0,0,0,0.06)',
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowRadius: 20,
-            shadowOffset: { width: 0, height: 6 },
+            top: 60,
+            left: 25,
+            zIndex: 20,
+            elevation: 3,
           }}
-        >
-          {candidate.image_url ? (
-            <Image
-              source={{ uri: candidate.image_url }}
-              style={{ width: '100%', height: 300, borderRadius: 20 }}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={{ width: '100%', height: 300, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: '#666' }}>No photo</Text>
-            </View>
-          )}
+        />
+        <View style={{ flex: 1, padding: 20, paddingBottom: 110, backgroundColor: 'transparent' }}>
           <View
             style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              width: 40,
-              height: 40,
+              marginTop: 20,
+              backgroundColor: 'white',
               borderRadius: 20,
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
+              overflow: 'hidden',
+              marginBottom: 16,
+              position: 'relative',
+              borderWidth: 3,
               borderColor: 'rgba(0,0,0,0.06)',
-            }}
-          >
-            <Text style={{ fontWeight: '700' }}>{candidate.waist_number ?? '—'}</Text>
-          </View>
-
-          {/* Full image button [ ] */}
-          <Pressable
-            onPress={() => candidate.image_url && setImageExpanded(true)}
-            style={{
-              position: 'absolute',
-              bottom: 12,
-              right: 12,
-              paddingVertical: 6,
-              paddingHorizontal: 10,
-              borderRadius: 10,
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              borderWidth: 1,
-              borderColor: 'rgba(0,0,0,0.06)',
-              opacity: candidate.image_url ? 1 : 0.6,
-            }}
-          >
-            <Text style={{ fontWeight: '700' }}>[ ]</Text>
-          </Pressable>
-        </View>
-
-        <Text style={{ fontSize: 28, fontWeight: '600', color: 'white', marginTop: 15, marginBottom: 15, letterSpacing: 0.3, textAlign: 'center' }}>
-          {candidate.name}
-        </Text>
-
-        {/* Info pills: 2x2 grid */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12, marginTop: 15, }}>
-          <InfoPill title="Height" value={candidate.height_cm ? `${candidate.height_cm} cm` : '—'} />
-          <InfoPill title="Birthday" value={candidate.birthday ? formatDate(candidate.birthday) : '—'} />
-          <InfoPill title="Age" value={candidate.birthday ? `${computeAge(candidate.birthday)} years` : '—'} />
-          <InfoPill title="Hobby" value={candidate.hobby || '—'} />
-        </View>
-
-        {error && <Text style={{ marginTop: 12, color: '#ffdddd' }}>{error}</Text>}
-
-        {/* Bottom controls: unified floating pill */}
-        <View style={{ position: 'absolute', left: 20, right: 20, bottom: 32, alignItems: 'center' }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.16)',
-              borderWidth: 1,
-              borderColor: 'rgba(255, 255, 255, 0)',
-              borderRadius: 40,
-              paddingVertical: 8,
-              paddingHorizontal: 12,
               shadowColor: '#000',
-              shadowOpacity: 0.1,
-              shadowRadius: 12,
+              shadowOpacity: 0.08,
+              shadowRadius: 20,
               shadowOffset: { width: 0, height: 6 },
             }}
           >
-            {/* Keep your three Pressables inside this wrapper */}
-            <Pressable
-              onPress={goPrev}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  borderColor: 'rgba(255, 255, 255, 0)',
-                  borderWidth: 1,
-                  
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 16,
-                  shadowColor: '#000',
-                  shadowOpacity: 0.08,
-                  shadowRadius: 10,
-                  shadowOffset: { width: 0, height: 6 },
-                  transform: [{ scale: pressed ? 0.96 : 1 }],
-                },
-              ]}
+            {candidate.image_url ? (
+              <Image
+                source={{ uri: candidate.image_url }}
+                style={{ width: '100%', height: 300, borderRadius: 20 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={{ width: '100%', height: 250, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: '#666' }}>No photo</Text>
+              </View>
+            )}
+            <View
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.06)',
+              }}
             >
-              <Text style={{ color: 'white', fontSize: 20, fontWeight: '800' }}>{'<'}</Text>
-            </Pressable>
+              <Text style={{ fontWeight: '700' }}>{candidate.waist_number ?? '—'}</Text>
+            </View>
 
+            {/* Full image button [ ] */}
             <Pressable
-              onPress={handleVoteButtonPress}
-              disabled={voting}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: '#515cfbff',
-                  paddingVertical: 20,
-                  paddingHorizontal: 32,
-                  borderRadius: 30,
-                  opacity: voting ? 0.7 : 1,
-                  shadowColor: '#8440ebff',
-                  shadowOpacity: 0.12,
-                  shadowRadius: 12,
-                  shadowOffset: { width: 0, height: 6 },
-                  borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0)',
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                },
-              ]}
+              onPress={() => candidate.image_url && setImageExpanded(true)}
+              style={{
+                position: 'absolute',
+                bottom: 12,
+                right: 12,
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.06)',
+                opacity: candidate.image_url ? 1 : 0.6,
+              }}
             >
-              <Text style={{ color: 'white', fontSize: 18, fontWeight: '800' }}>
-                Vote
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={goNext}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderColor: 'rgba(255, 255, 255, 0)',
-                  borderWidth: 1,
-                  
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: 16,
-                  shadowColor: '#000',
-                  shadowOpacity: 0.08,
-                  shadowRadius: 10,
-                  shadowOffset: { width: 0, height: 6 },
-                  transform: [{ scale: pressed ? 0.96 : 1 }],
-                },
-              ]}
-            >
-              <Text style={{ color: 'white', fontSize: 20, fontWeight: '800' }}>{'>'}</Text>
+              <Text style={{ fontWeight: '700' }}>[ ]</Text>
             </Pressable>
           </View>
+
+          <Text style={{ fontSize: 28, fontWeight: '600', color: 'white', marginTop: 15, marginBottom: 15, letterSpacing: 0.3, textAlign: 'center' }}>
+            {candidate.name}
+          </Text>
+
+          {/* Info pills: 2x2 grid */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12, marginTop: 15, }}>
+            <InfoPill title="Height" value={candidate.height_cm ? `${candidate.height_cm} cm` : '—'} />
+            <InfoPill title="Birthday" value={candidate.birthday ? formatDate(candidate.birthday) : '—'} />
+            <InfoPill title="Age" value={candidate.birthday ? `${computeAge(candidate.birthday)} years` : '—'} />
+            <InfoPill title="Hobby" value={candidate.hobby || '—'} />
+          </View>
+
+          {error && <Text style={{ marginTop: 12, color: '#ffdddd' }}>{error}</Text>}
+
+          {/* Bottom controls: unified floating pill */}
+          <View style={{ position: 'absolute', left: 20, right: 20, bottom: 32, alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255,255,255,0.16)',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0)',
+                borderRadius: 40,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                shadowColor: '#000',
+                shadowOpacity: 0.1,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 6 },
+              }}
+            >
+              {/* Keep your three Pressables inside this wrapper */}
+              <Pressable
+                onPress={goPrev}
+                disabled={!prevNeighborId}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  {
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                    borderColor: 'rgba(255, 255, 255, 0)',
+                    borderWidth: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 16,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.08,
+                    shadowRadius: 10,
+                    shadowOffset: { width: 0, height: 6 },
+                    opacity: prevNeighborId ? 1 : 0.4,
+                    transform: [{ scale: pressed ? 0.96 : 1 }],
+                  },
+                ]}
+              >
+                <Text style={{ color: 'white', fontSize: 30, fontWeight: '800' }}>{'‹‹'}</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleVoteButtonPress}
+                disabled={voting}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: '#515cfbff',
+                    paddingVertical: 20,
+                    paddingHorizontal: 32,
+                    borderRadius: 30,
+                    opacity: voting ? 0.7 : 1,
+                    shadowColor: '#8440ebff',
+                    shadowOpacity: 0.12,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 6 },
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0)',
+                    transform: [{ scale: pressed ? 0.98 : 1 }],
+                  },
+                ]}
+              >
+                <Text style={{ color: 'white', fontSize: 18, fontWeight: '800' }}>
+                  Vote
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={goNext}
+                disabled={!nextNeighborId}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  {
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: 'rgba(255,255,255,0)',
+                    borderColor: 'rgba(255, 255, 255, 0)',
+                    borderWidth: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: 16,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.08,
+                    shadowRadius: 10,
+                    shadowOffset: { width: 0, height: 6 },
+                    opacity: nextNeighborId ? 1 : 0.4,
+                    transform: [{ scale: pressed ? 0.96 : 1 }],
+                  },
+                ]}
+              >
+                <Text style={{ color: 'white', fontSize: 30, fontWeight: '800' }}>{'››'}</Text>
+              </Pressable>
+            </View>
+          </View>
         </View>
-      </View>
 
-      {/* Full-screen image overlay */}
-      {imageExpanded && candidate.image_url && (
-        <Pressable
-          onPress={() => setImageExpanded(false)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.92)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Image
-            source={{ uri: candidate.image_url }}
-            style={{ width: '100%', height: '100%' }}
-            resizeMode="contain"
-          />
-        </Pressable>
-      )}
+        {/* Full-screen image overlay */}
+        {imageExpanded && candidate.image_url && (
+          <Pressable
+            onPress={() => setImageExpanded(false)}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.92)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Image
+              source={{ uri: candidate.image_url }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
+          </Pressable>
+        )}
 
-      {/* Category Selection Modal */}
-      <Modal
-        visible={showCategoryModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowCategoryModal(false)}
-      >
-        <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
-          onPress={() => setShowCategoryModal(false)}
+        {/* Category Selection Modal */}
+        <Modal
+          visible={showCategoryModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowCategoryModal(false)}
         >
           <Pressable
             style={{
-              backgroundColor: 'white',
-              borderRadius: 20,
-              padding: 24,
-              width: '100%',
-              maxWidth: 320,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 10,
-              elevation: 10,
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
             }}
-            onPress={(e) => e.stopPropagation()} // Prevent modal from closing when tapping inside
+            onPress={() => setShowCategoryModal(false)}
           >
-            <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 4 }}>
-              Select Category
-            </Text>
-            <Text style={{ textAlign: 'center', color: '#888', marginBottom: 24 }}>
-              Tickets left: {ticketsLeft ?? '...'}
-            </Text>
-            
-            {/* Category grid (2x2) */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12 }}>
-              {categories.map((category) => (
+            <Pressable
+              style={{
+                backgroundColor: 'white',
+                borderRadius: 20,
+                padding: 24,
+                width: '100%',
+                maxWidth: 320,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 10,
+                elevation: 10,
+              }}
+              onPress={(e) => e.stopPropagation()} // Prevent modal from closing when tapping inside
+            >
+              <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 4 }}>
+                Select Category
+              </Text>
+              <Text style={{ textAlign: 'center', color: '#888', marginBottom: 24 }}>
+                Tickets left: {ticketsLeft ?? '...'}
+              </Text>
+              
+              {/* Category grid (2x2) */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12 }}>
+                {categories.map((category) => (
+                  <Pressable
+                    key={category.id}
+                    onPress={() => setSelectedCategory(category.id)}
+                    disabled={(ticketsLeft ?? 0) <= 0}
+                    style={{
+                      width: '48%',
+                      backgroundColor: selectedCategory === category.id ? '#e0f0ff' : '#f5f5f5',
+                      paddingVertical: 14,
+                      borderRadius: 16,
+                      borderWidth: 2,
+                      borderColor: selectedCategory === category.id ? '#4f8cff' : '#f5f5f5',
+                      opacity: (ticketsLeft ?? 0) <= 0 ? 0.6 : 1,
+                    }}
+                  >
+                    <Text style={{
+                      color: selectedCategory === category.id ? '#005fcc' : '#333',
+                      fontSize: 15,
+                      fontWeight: '600',
+                      textAlign: 'center',
+                    }}>
+                      {getCategoryDisplayName(category.type)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {error && (
+                <Text style={{ color: 'red', fontSize: 14, textAlign: 'center', marginTop: 12, marginBottom: 4 }}>
+                  {error}
+                </Text>
+              )}
+
+              {/* Action buttons */}
+              <View style={{ flexDirection: 'row', marginTop: 24, gap: 12 }}>
                 <Pressable
-                  key={category.id}
-                  onPress={() => setSelectedCategory(category.id)}
-                  disabled={(ticketsLeft ?? 0) <= 0}
+                  onPress={submitVote}
+                  disabled={!selectedCategory || voting || (ticketsLeft ?? 0) <= 0}
                   style={{
-                    width: '48%',
-                    backgroundColor: selectedCategory === category.id ? '#e0f0ff' : '#f5f5f5',
+                    flex: 1,
+                    backgroundColor: selectedCategory && !voting && (ticketsLeft ?? 0) > 0 ? '#4f8cff' : '#ccc',
                     paddingVertical: 14,
                     borderRadius: 16,
-                    borderWidth: 2,
-                    borderColor: selectedCategory === category.id ? '#4f8cff' : '#f5f5f5',
-                    opacity: (ticketsLeft ?? 0) <= 0 ? 0.6 : 1,
                   }}
                 >
-                  <Text style={{
-                    color: selectedCategory === category.id ? '#005fcc' : '#333',
-                    fontSize: 15,
-                    fontWeight: '600',
-                    textAlign: 'center',
-                  }}>
-                    {getCategoryDisplayName(category.type)}
+                  <Text style={{ color: 'white', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
+                    {voting ? 'Voting...' : 'Vote'}
                   </Text>
                 </Pressable>
-              ))}
-            </View>
 
-            {error && (
-              <Text style={{ color: 'red', fontSize: 14, textAlign: 'center', marginTop: 12, marginBottom: 4 }}>
-                {error}
-              </Text>
-            )}
-
-            {/* Action buttons */}
-            <View style={{ flexDirection: 'row', marginTop: 24, gap: 12 }}>
-              <Pressable
-                onPress={submitVote}
-                disabled={!selectedCategory || voting || (ticketsLeft ?? 0) <= 0}
-                style={{
-                  flex: 1,
-                  backgroundColor: selectedCategory && !voting && (ticketsLeft ?? 0) > 0 ? '#4f8cff' : '#ccc',
-                  paddingVertical: 14,
-                  borderRadius: 16,
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
-                  {voting ? 'Voting...' : 'Vote'}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setShowCategoryModal(false)}
-                style={{
-                  flex: 1,
-                  backgroundColor: '#f5f5f5',
-                  paddingVertical: 14,
-                  borderRadius: 16,
-                }}
-              >
-                <Text style={{ color: '#666', fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
-                  Cancel
-                </Text>
-              </Pressable>
-            </View>
+                <Pressable
+                  onPress={() => setShowCategoryModal(false)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#f5f5f5',
+                    paddingVertical: 14,
+                    borderRadius: 16,
+                  }}
+                >
+                  <Text style={{ color: '#666', fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
+                    Cancel
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      </LinearGradient>
     </SafeAreaView>
   );
 }

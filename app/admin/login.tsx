@@ -62,7 +62,7 @@ export default function AdminLogin() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-      <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd' }}>
+      <View style={{ flex: 1, padding: 20, backgroundColor: '#6a5acd', marginTop: 55 }}>
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 12 }}>
           <Text

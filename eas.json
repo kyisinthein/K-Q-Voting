@@ -1,0 +1,25 @@
+{
+  "cli": {
+    "version": ">= 16.24.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://gjqkgldclvvcdnzngmyu.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqcWtnbGRjbHZ2Y2Ruem5nbXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MDM3ODgsImV4cCI6MjA3NzE3OTc4OH0.SKXtu8NjlXwnq2ErWoCrfKRWiV84BOnbk3KN2fMKKC4"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

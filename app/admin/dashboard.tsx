@@ -157,7 +157,7 @@ export default function AdminDashboard() {
           borderBottomWidth: 1,
           borderBottomColor: 'rgba(255, 255, 255, 0.2)',
         }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 55 }}>
             <View>
               <Text style={{ fontSize: 24, fontWeight: '700', color: 'white' }}>
                 Admin Dashboard

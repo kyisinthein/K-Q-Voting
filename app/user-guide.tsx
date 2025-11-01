@@ -1,7 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, Pressable } from 'react-native';
-import { router } from 'expo-router';
-
+import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import BackButton from '../components/ui/back-button';
 export default function UserGuide() {
   const sections = [
     {
@@ -55,9 +54,14 @@ export default function UserGuide() {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-      <View style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#9587f0ff' }}>
+      
+      <BackButton
+        color="white"
+        style={{ top: 70, left: 16, zIndex: 20, elevation: 3 }}
+      />
+      <View style={{ flex: 1, backgroundColor: '#8878f0ff' }}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32, marginTop: 55 }}>
           {/* Header */}
           <View style={{ alignItems: 'center', marginBottom: 12 }}>
             <Text style={{ fontSize: 26, fontWeight: '800', color: 'white', textAlign: 'center', letterSpacing: 0.3 }}>
@@ -100,7 +104,7 @@ export default function UserGuide() {
           </View>
 
           {/* Footer actions */}
-          <View style={{ marginTop: 20, alignItems: 'center' }}>
+          {/* <View style={{ marginTop: 20, alignItems: 'center' }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -139,7 +143,7 @@ export default function UserGuide() {
                 <Text style={{ color: 'white', fontWeight: '700' }}>Live Results</Text>
               </Pressable>
             </View>
-          </View>
+          </View> */}
         </ScrollView>
       </View>
     </SafeAreaView>

@@ -3,15 +3,15 @@
     "name": "K-Q-Voting",
     "slug": "K-Q-Voting",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "kqvoting",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.workify.kqvote",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.votee.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +19,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "androidStatusBar": {
+        "backgroundColor": "#6a5acd",
+        "translucent": false,
+        "barStyle": "light-content"
+      }
     },
     "web": {
       "output": "static",
@@ -43,6 +48,14 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ef0ff33d-9986-4f1d-9c5f-0eedcab6343d"
+      },
+      "SUPABASE_URL": "https://gjqkgldclvvcdnzngmyu.supabase.co",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqcWtnbGRjbHZ2Y2Ruem5nbXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MDM3ODgsImV4cCI6MjA3NzE3OTc4OH0.SKXtu8NjlXwnq2ErWoCrfKRWiV84BOnbk3KN2fMKKC4"
     }
   }
 }

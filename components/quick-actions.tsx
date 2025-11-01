@@ -20,7 +20,7 @@ export default function QuickActionsFloating() {
     <>
       {/* Right-edge floating pill */}
       <View pointerEvents="box-none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
-        <View pointerEvents="box-none" style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'center' }}>
+        <View pointerEvents="box-none" style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: 8, paddingBottom: 24 }}>
           <Pressable
             onPress={() => setOpen(true)}
             style={{
@@ -31,7 +31,7 @@ export default function QuickActionsFloating() {
               borderBottomLeftRadius: 25,
               backgroundColor: 'rgba(239, 206, 72, 0.45)',
               position: 'relative',
-              right: -12,
+              // right: -12, // moved to bottom-right via container padding
               alignItems: 'center',
               justifyContent: 'center',
               shadowColor: '#000',
@@ -41,7 +41,7 @@ export default function QuickActionsFloating() {
               elevation: 8,
             }}
           >
-            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'<<'}</Text>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: 'white' }}>{'‹‹'}</Text>
           </Pressable>
         </View>
       </View>
@@ -70,13 +70,13 @@ export default function QuickActionsFloating() {
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
                 <ActionTile icon="house.fill" label="Home" onPress={() => { setOpen(false); router.push('/home'); }} />
                 <ActionTile
-                  icon="list.bullet"
+                  icon="star.fill"
                   label="Sponsors"
                   onPress={() => { setOpen(false); router.push('/sponsors'); }}
                 />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>
-                <ActionTile icon="book.fill" label="User Guide" onPress={() => { setOpen(false); router.push('/partners'); }} />
+                <ActionTile icon="book.fill" label="User Guide" onPress={() => { setOpen(false); router.push('/user-guide'); }} />
                 <ActionTile icon="chart.bar.fill" label="Live Results" onPress={() => { setOpen(false); router.push('/live-results'); }} />
               </View>
               <View style={{ flexDirection: 'row', columnGap: 10 }}>

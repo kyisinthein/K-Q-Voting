@@ -1,7 +1,7 @@
 // Top-level imports and types
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, ScrollView, Text, View, Image } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 type Row = {
@@ -217,7 +217,7 @@ export default function AdminResults() {
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#005fcc' }}>{item.votes}</Text>
+          <Text style={{ fontSize: 15, fontWeight: '400', color: '#005fcc' }}>{item.votes}</Text>
         </View>
       </View>
     );
@@ -287,7 +287,7 @@ export default function AdminResults() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#6a5acd' }}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 , padding: 20, backgroundColor: '#6a5acd', marginTop: 55 }}>
         {/* Header */}
         <View
           style={{

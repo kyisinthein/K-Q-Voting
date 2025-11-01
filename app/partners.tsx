@@ -96,9 +96,9 @@ export default function Partners() {
           >
             Our Partners
           </Text>
-          <Text style={{ marginTop: 6, color: '#555', textAlign: 'center' }}>
+          {/* <Text style={{ marginTop: 6, color: '#555', textAlign: 'center' }}>
             Huge thanks to our partners who make this possible.
-          </Text>
+          </Text> */}
         </View>
 
         {/* Removed countdown from here */}
@@ -329,9 +329,9 @@ export default function Partners() {
       </View>
 
       {/* Countdown to Home — bottom-fixed inside SafeAreaView */}
-      <View style={{ position: 'absolute', left: 20, right: 20, bottom: 70 }}>
+      <View style={{ position: 'absolute', left: 20, right: 20, bottom: 50 }}>
         <View style={{ alignSelf: 'center' }}>
-          <Text style={{ color: '#1e90ff', fontWeight: '600', marginBottom: 15 }}>
+          <Text style={{ color: '#1e90ff', fontWeight: '600', marginBottom: 10 }}>
             Home Page in {remaining}s
           </Text>
         </View>
